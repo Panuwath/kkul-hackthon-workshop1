@@ -117,7 +117,7 @@ echo "Uploading deployment archive"
 printf 'put %s %s\n' "$(shell_quote "$ARCHIVE_FILE")" "$REMOTE_ARCHIVE_Q" | run_sftp_batch
 
 echo "Uploading runtime environment separately"
-printf 'put %s %s\n' "$(shell_quote "$ROOT_DIR/.env")" "$REMOTE_ENV_Q" | run_sftp_batch
+printf 'put %s %s\n' "$(shell_quote "$ENV_FILE")" "$REMOTE_ENV_Q" | run_sftp_batch
 
 echo "Checking port $APP_PORT and deploying"
 run_ssh "set -eu
