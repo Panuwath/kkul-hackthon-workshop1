@@ -122,12 +122,15 @@ Workflow `.github/workflows/ci.yml` ทำงานตามลำดับ `qua
 | Secret | `PEMA_KNOWN_HOSTS` | บรรทัด host key ที่ยืนยันแล้วของ server |
 | Secret | `PEMA_DEPLOY_HOST` | hostname/IP ของ server |
 | Secret | `PEMA_DEPLOY_USER` | user สำหรับ SSH/SFTP |
+| Secret | `PEMA_DEPLOY_PASSWORD` | password สำหรับ SSH/SFTP เมื่อไม่ได้ใช้ private key; เก็บใน GitHub Environment เท่านั้น |
 | Secret | `PEMA_DEPLOY_PATH` | absolute path ของ app บน server |
 | Secret | `PEMA_PRODUCTION_ENV` | เนื้อหา `.env` production ทั้งชุด รวม `AUTH_MODE=jwt` และ `AUTH_JWT_SECRET` |
 | Variable | `PEMA_DEPLOY_PORT` | SSH port; ถ้าไม่ตั้งใช้ `22` |
 | Variable | `PEMA_APP_PORT` | host port ของ app; ถ้าไม่ตั้งใช้ `3061` |
 
 `PEMA_PRODUCTION_ENV` ถูกเขียนลง runner ชั่วคราวและส่งขึ้น server แยกจาก source archive ไม่ถูก commit และไม่ถูกแสดงใน log การ deploy จะหยุดก่อน upload หากไม่มี `AUTH_JWT_SECRET` หรือกำหนด `AUTH_MODE` เป็นค่าอื่นนอกจาก `jwt`
+
+การเชื่อมต่อเลือกใช้ `PEMA_SSH_PRIVATE_KEY` หรือ `PEMA_DEPLOY_PASSWORD` ตาม credential ที่ server อนุญาต โดย workflow ติดตั้ง `sshpass` เฉพาะเมื่อมี password secret และยังบังคับตรวจ `PEMA_KNOWN_HOSTS` ทุกครั้ง
 
 การ seed ไม่ถูกรันอัตโนมัติใน production workflow เพื่อป้องกันข้อมูลทดสอบปะปนกับข้อมูลจริง ใช้ `npm run db:seed` กับ database ที่แยกแล้วเท่านั้น
 
