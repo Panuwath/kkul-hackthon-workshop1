@@ -36,7 +36,7 @@ jobs:
     if: >-
       github.ref == 'refs/heads/main' &&
       (github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.confirm == true))
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, pema-kku-production]
     timeout-minutes: 20
     environment: production
     concurrency:

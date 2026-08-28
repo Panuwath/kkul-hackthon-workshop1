@@ -112,7 +112,7 @@ npm run deploy:server
 
 ### GitHub Actions เป็นช่องทาง deploy หลัก
 
-Workflow `.github/workflows/ci.yml` ทำงานตามลำดับ `quality → deploy` โดย deploy จะทำงานเมื่อ push เข้า `main` หรือเมื่อกด `workflow_dispatch` พร้อมเลือก `confirm=true` เท่านั้น การ deploy ใช้ GitHub Environment ชื่อ `production` และมี concurrency lock ชื่อ `pema-production` เพื่อไม่ให้ deploy ชนกัน
+Workflow `.github/workflows/ci.yml` ทำงานตามลำดับ `quality → deploy` โดย deploy จะทำงานเมื่อ push เข้า `main` หรือเมื่อกด `workflow_dispatch` พร้อมเลือก `confirm=true` เท่านั้น quality รันบน GitHub-hosted runner ส่วน deploy รันบน self-hosted runner label `pema-kku-production` ใน network เดียวกับ server เพื่อรองรับ server ที่ไม่เปิด SSH ให้ public GitHub runner การ deploy ใช้ GitHub Environment ชื่อ `production` และมี concurrency lock ชื่อ `pema-production` เพื่อไม่ให้ deploy ชนกัน
 
 ต้องตั้งค่าใน GitHub ที่ `Settings → Environments → production`:
 
