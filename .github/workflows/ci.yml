@@ -1,86 +1,102 @@
-name: CI/CD Pipeline
+name: CI
 
 on:
   pull_request:
-    branches: [main]
   push:
     branches: [main]
   workflow_dispatch:
+    inputs:
+      confirm:
+        description: Deploy the selected main branch revision to production
+        required: true
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
 
 jobs:
   quality:
-    name: Test & Build
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           cache: npm
-
-      - name: Install Dependencies
-        run: npm ci
-
-      - name: Generate Prisma Client
-        run: npx prisma generate
-
-      - name: Type Check
-        run: npm run typecheck
-
-      - name: Lint
-        run: npm run lint
-
-      - name: Run Tests
-        run: npm test
-
-      - name: Build Next.js
-        run: npm run build
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run build
 
   deploy:
-    name: Deploy
+    name: Deploy production
     needs: quality
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    if: >-
+      github.ref == 'refs/heads/main' &&
+      (github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.confirm == true))
     runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment: production
+    concurrency:
+      group: pema-production
+      cancel-in-progress: false
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Deploy to Server via SSH
+      - name: Install deployment SSH key
+        if: ${{ env.PEMA_SSH_PRIVATE_KEY != '' }}
         env:
-          SERVER_HOST: ${{ secrets.SERVER_HOST }}
-          SERVER_USER: ${{ secrets.SERVER_USER }}
-          SERVER_SSH_KEY: ${{ secrets.SERVER_SSH_KEY }}
-          REMOTE_PATH: ${{ secrets.REMOTE_PATH || '/var/www/pema' }}
-          APP_PORT: ${{ secrets.APP_PORT || '3061' }}
+          PEMA_SSH_PRIVATE_KEY: ${{ secrets.PEMA_SSH_PRIVATE_KEY }}
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.PEMA_SSH_PRIVATE_KEY }}
+
+      - name: Install password SSH client
+        if: ${{ env.PEMA_DEPLOY_PASSWORD != '' }}
+        env:
+          PEMA_DEPLOY_PASSWORD: ${{ secrets.PEMA_DEPLOY_PASSWORD }}
         run: |
-          if [ -n "$SERVER_HOST" ] && [ -n "$SERVER_USER" ] && [ -n "$SERVER_SSH_KEY" ]; then
-            echo "🚀 Starting automated deployment to $SERVER_HOST..."
-            mkdir -p ~/.ssh
-            echo "$SERVER_SSH_KEY" > ~/.ssh/id_rsa
-            chmod 600 ~/.ssh/id_rsa
-            
-            # Package code
-            tar -czf deploy.tar.gz \
-              --exclude='./.git' \
-              --exclude='./node_modules' \
-              --exclude='./.next' \
-              --exclude='./coverage' \
-              .
-            
-            # Transfer & Deploy
-            scp -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa deploy.tar.gz "$SERVER_USER@$SERVER_HOST:$REMOTE_PATH/deploy.tar.gz"
-            ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa "$SERVER_USER@$SERVER_HOST" "
-              set -eu
-              mkdir -p $REMOTE_PATH
-              cd $REMOTE_PATH
-              tar -xzf deploy.tar.gz
-              rm -f deploy.tar.gz
-              APP_PORT=$APP_PORT docker compose -p pema-kku up -d --build
-              echo '✅ PEMA container successfully updated and running on port $APP_PORT'
-            "
-          else
-            echo "ℹ️ SSH secrets not configured on GitHub. Quality checks & build succeeded."
-          fi
+          sudo apt-get update
+          sudo apt-get install --yes --no-install-recommends sshpass
+
+      - name: Configure known hosts
+        env:
+          PEMA_KNOWN_HOSTS: ${{ secrets.PEMA_KNOWN_HOSTS }}
+        run: |
+          set -eu
+          test -n "$PEMA_KNOWN_HOSTS"
+          mkdir -p "$HOME/.ssh"
+          printf '%s\n' "$PEMA_KNOWN_HOSTS" > "$HOME/.ssh/known_hosts"
+          chmod 600 "$HOME/.ssh/known_hosts"
+
+      - name: Write production environment outside workspace
+        env:
+          PEMA_PRODUCTION_ENV: ${{ secrets.PEMA_PRODUCTION_ENV }}
+        run: |
+          set -eu
+          test -n "$PEMA_PRODUCTION_ENV"
+          printf '%s\n' "$PEMA_PRODUCTION_ENV" > "$RUNNER_TEMP/pema-production.env"
+          chmod 600 "$RUNNER_TEMP/pema-production.env"
+
+      - name: Deploy over SSH and verify health
+        env:
+          DEPLOY_HOST: ${{ secrets.PEMA_DEPLOY_HOST }}
+          DEPLOY_PORT: ${{ vars.PEMA_DEPLOY_PORT }}
+          DEPLOY_USER: ${{ secrets.PEMA_DEPLOY_USER }}
+          DEPLOY_PASSWORD: ${{ secrets.PEMA_DEPLOY_PASSWORD }}
+          DEPLOY_PATH: ${{ secrets.PEMA_DEPLOY_PATH }}
+          DEPLOY_ENV_FILE: ${{ runner.temp }}/pema-production.env
+          APP_PORT: ${{ vars.PEMA_APP_PORT }}
+          DEPLOY_RUN_ID: ${{ github.run_id }}
+          DEPLOY_REVISION: ${{ github.sha }}
+          SSH_KNOWN_HOSTS_FILE: ${{ github.workspace }}/.github-known-hosts
+        run: |
+          set -eu
+          cp "$HOME/.ssh/known_hosts" "$SSH_KNOWN_HOSTS_FILE"
+          chmod 600 "$SSH_KNOWN_HOSTS_FILE"
+          bash scripts/deploy-server.sh
+
+      - name: Verify public production health endpoint
+        run: curl --fail --silent --show-error --max-time 15 https://lib.kku.ac.th/pema/api/health
