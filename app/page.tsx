@@ -39,6 +39,8 @@ export default function DashboardPage() {
                 alt="Khon Kaen University"
                 width={40}
                 height={40}
+                priority
+                unoptimized
                 className="h-8 w-auto object-contain"
               />
             </div>
