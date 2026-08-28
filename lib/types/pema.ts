@@ -71,6 +71,7 @@ export interface PemaRequest {
   createdAt: string;
   updatedAt: string;
   status: RequestStatus;
+  version?: number;
   
   // Dates & Venue
   startDate: string;

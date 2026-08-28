@@ -1,27 +1,22 @@
 "use client";
 
 import React from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { usePema } from "@/lib/context/RequestContext";
-import { getDashboardMetrics } from "@/lib/mock-data/requests";
-import { PageHeader } from "@/components/ui/PageHeader";
-import { SectionCard } from "@/components/ui/SectionCard";
+import { getDashboardMetrics } from "@/lib/dashboard-metrics";
 import { MoneyValue } from "@/components/ui/MoneyValue";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { RequestTable } from "@/components/domain/RequestTable";
 import { RequestCard } from "@/components/domain/RequestCard";
-import { formatDateThai } from "@/lib/utils";
 import {
   Plus,
   FileSpreadsheet,
   Clock,
   CheckCircle2,
-  AlertCircle,
-  TrendingUp,
   Banknote,
   ArrowRight,
   Sparkles,
-  AlertTriangle,
 } from "lucide-react";
 
 export default function DashboardPage() {
@@ -39,9 +34,11 @@ export default function DashboardPage() {
         <div className="relative z-10 max-w-2xl">
           <div className="flex items-center gap-3 mb-4 flex-wrap">
             <div className="bg-white/95 rounded-xl px-2.5 py-1.5 shadow-sm flex items-center">
-              <img
+              <Image
                 src="/logo.png"
                 alt="Khon Kaen University"
+                width={100}
+                height={28}
                 className="h-7 w-auto object-contain"
               />
             </div>

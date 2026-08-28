@@ -1,10 +1,9 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useMemo, useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { usePema } from "@/lib/context/RequestContext";
-import { StatusBadge } from "@/components/ui/StatusBadge";
-import { formatDateThai, formatDateTimeThai } from "@/lib/utils";
+import { formatDateTimeThai } from "@/lib/utils";
 import {
   Bell,
   CheckCheck,
@@ -13,7 +12,6 @@ import {
   CheckCircle2,
   Banknote,
   X,
-  ExternalLink,
   ChevronRight,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -33,12 +31,10 @@ export const NotificationPopover: React.FC = () => {
   const { requests, disbursements } = usePema();
   const [isOpen, setIsOpen] = useState(false);
   const [filter, setFilter] = useState<"all" | "unread">("all");
+  const [readNotificationIds, setReadNotificationIds] = useState<string[]>([]);
   const popoverRef = useRef<HTMLDivElement>(null);
 
-  // Generate dynamic notifications from requests and disbursements
-  const [notifications, setNotifications] = useState<NotificationItem[]>([]);
-
-  useEffect(() => {
+  const notifications = useMemo(() => {
     const list: NotificationItem[] = [];
 
     // 1. Returned requests (High Priority Urgent)
@@ -105,8 +101,10 @@ export const NotificationPopover: React.FC = () => {
         });
       });
 
-    setNotifications(list);
-  }, [requests, disbursements]);
+    return list.map((item) =>
+      readNotificationIds.includes(item.id) ? { ...item, isRead: true } : item
+    );
+  }, [requests, disbursements, readNotificationIds]);
 
   // Click outside to close
   useEffect(() => {
@@ -135,12 +133,14 @@ export const NotificationPopover: React.FC = () => {
   const unreadCount = notifications.filter((n) => !n.isRead).length;
 
   const markAllAsRead = () => {
-    setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
+    setReadNotificationIds((previous) => [
+      ...new Set([...previous, ...notifications.map((item) => item.id)]),
+    ]);
   };
 
   const markAsRead = (id: string) => {
-    setNotifications((prev) =>
-      prev.map((n) => (n.id === id ? { ...n, isRead: true } : n))
+    setReadNotificationIds((previous) =>
+      previous.includes(id) ? previous : [...previous, id]
     );
     setIsOpen(false);
   };

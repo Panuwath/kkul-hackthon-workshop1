@@ -9,7 +9,7 @@ import { SectionCard } from "@/components/ui/SectionCard";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { MoneyValue } from "@/components/ui/MoneyValue";
 import { formatDateThai } from "@/lib/utils";
-import { Banknote, Building, User, FileText, CheckCircle2, ChevronLeft, Printer } from "lucide-react";
+import { Banknote, Building, User, CheckCircle2, ChevronLeft, Printer } from "lucide-react";
 
 export default function DisbursementDetailPage() {
   const params = useParams();
@@ -22,7 +22,7 @@ export default function DisbursementDetailPage() {
     return (
       <div className="p-8 text-center space-y-4">
         <h2 className="text-xl font-bold text-brand-text">ไม่พบรายการเบิกจ่าย</h2>
-        <p className="text-sm text-brand-muted">รหัส "{id}" ไม่มีอยู่ในระบบ</p>
+        <p className="text-sm text-brand-muted">รหัส &quot;{id}&quot; ไม่มีอยู่ในระบบ</p>
         <Link
           href="/disbursements"
           className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-brand-primary text-white text-sm font-semibold"

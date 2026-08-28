@@ -1,8 +1,7 @@
 "use client";
 
 import React from "react";
-import { Search, X, Filter } from "lucide-react";
-import { RequestStatus, ProjectCategory } from "@/lib/types/pema";
+import { Search, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface RequestFilterBarProps {

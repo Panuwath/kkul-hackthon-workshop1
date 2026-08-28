@@ -38,7 +38,7 @@ export const ExpenseItemArray: React.FC<ExpenseItemArrayProps> = ({
     onChange([...items, newItem]);
   };
 
-  const updateItem = (index: number, field: keyof ExpenseItem, value: any) => {
+  const updateItem = (index: number, field: keyof ExpenseItem, value: string | number) => {
     const updated = [...items];
     const item = { ...updated[index], [field]: value };
 

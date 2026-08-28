@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -8,10 +9,7 @@ import {
   FileSpreadsheet,
   PlusCircle,
   Banknote,
-  Settings,
-  HelpCircle,
   X,
-  Layers,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -83,9 +81,11 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
               onClick={onClose}
               className="flex items-center gap-3 focus-ring rounded-xl py-1 min-w-0"
             >
-              <img
+              <Image
                 src="/logo.png"
                 alt="Khon Kaen University Logo"
+                width={40}
+                height={40}
                 className="h-10 w-auto object-contain flex-shrink-0"
               />
               <div className="border-l border-slate-200 pl-2.5 min-w-0">

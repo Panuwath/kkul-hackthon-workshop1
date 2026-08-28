@@ -16,8 +16,6 @@ import { ExpenseItemArray } from "@/components/domain/ExpenseItemArray";
 import { SpeakerItemArray } from "@/components/domain/SpeakerItemArray";
 import { TotalsSummary } from "@/components/domain/TotalsSummary";
 import { ErrorSummary } from "@/components/ui/ErrorSummary";
-import { StatusBadge } from "@/components/ui/StatusBadge";
-import { MoneyValue } from "@/components/ui/MoneyValue";
 import { formatDateThai } from "@/lib/utils";
 import {
   Building,
@@ -29,7 +27,6 @@ import {
   ChevronLeft,
   Save,
   Send,
-  AlertCircle,
   FileCheck,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -62,7 +59,7 @@ function CreateRequestWizardContent() {
   const searchParams = useSearchParams();
   const editId = searchParams.get("editId");
 
-  const { getRequestById, createRequest, updateRequest } = usePema();
+  const { getRequestByIdAsync, createRequest, updateRequest } = usePema();
 
   const [currentStep, setCurrentStep] = useState(1);
   const [isSaving, setIsSaving] = useState(false);
@@ -117,13 +114,15 @@ function CreateRequestWizardContent() {
 
   // Load existing request data if in edit mode
   useEffect(() => {
-    if (editId) {
-      const existing = getRequestById(editId);
-      if (existing) {
-        setFormData(existing);
-      }
-    }
-  }, [editId, getRequestById]);
+    if (!editId) return;
+    let cancelled = false;
+    void getRequestByIdAsync(editId).then((existing) => {
+      if (!cancelled && existing) setFormData(existing);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [editId, getRequestByIdAsync]);
 
   // Recalculate total budget when expenses change
   const handleExpensesChange = (expenses: ExpenseItem[]) => {
@@ -179,29 +178,30 @@ function CreateRequestWizardContent() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  const handleSaveDraft = () => {
+  const handleSaveDraft = async () => {
     setIsSaving(true);
-    setTimeout(() => {
+    try {
       const payload: Partial<PemaRequest> = {
         ...formData,
         status: "draft",
       };
 
       if (editId) {
-        updateRequest(editId, payload);
+        await updateRequest(editId, payload);
       } else {
-        createRequest(payload);
+        await createRequest(payload);
       }
 
-      setIsSaving(false);
       setNotification({ message: "บันทึกฉบับร่างเรียบร้อยแล้ว", type: "success" });
-      setTimeout(() => {
-        router.push("/requests");
-      }, 800);
-    }, 400);
+      router.push("/requests");
+    } catch (error) {
+      setNotification({ message: error instanceof Error ? error.message : "บันทึกฉบับร่างไม่สำเร็จ", type: "error" });
+    } finally {
+      setIsSaving(false);
+    }
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     // Validate all steps
     const allErrors: { field?: string; message: string }[] = [];
     if (!formData.title?.trim()) allErrors.push({ message: "ข้อมูลโครงการ: กรุณาระบุชื่อโครงการ" });
@@ -214,7 +214,7 @@ function CreateRequestWizardContent() {
     }
 
     setIsSaving(true);
-    setTimeout(() => {
+    try {
       const payload: Partial<PemaRequest> = {
         ...formData,
         status: "pending_approval",
@@ -222,15 +222,19 @@ function CreateRequestWizardContent() {
 
       let resultId = editId;
       if (editId) {
-        updateRequest(editId, payload);
+        const updated = await updateRequest(editId, payload);
+        resultId = updated.id;
       } else {
-        const created = createRequest(payload);
+        const created = await createRequest(payload);
         resultId = created.id;
       }
 
-      setIsSaving(false);
       router.push(`/requests/${resultId}`);
-    }, 500);
+    } catch (error) {
+      setNotification({ message: error instanceof Error ? error.message : "ส่งคำขอไม่สำเร็จ", type: "error" });
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
@@ -263,8 +267,6 @@ function CreateRequestWizardContent() {
           {STEPS.map((s, idx) => {
             const isCompleted = currentStep > s.step;
             const isCurrent = currentStep === s.step;
-            const Icon = s.icon;
-
             return (
               <React.Fragment key={s.step}>
                 <button
@@ -647,4 +649,3 @@ export default function CreateRequestWizardPage() {
     </Suspense>
   );
 }
-

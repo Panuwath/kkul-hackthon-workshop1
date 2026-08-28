@@ -31,7 +31,7 @@ export const SpeakerItemArray: React.FC<SpeakerItemArrayProps> = ({
     onChange([...items, newSpeaker]);
   };
 
-  const updateSpeaker = (index: number, field: keyof SpeakerItem, value: any) => {
+  const updateSpeaker = (index: number, field: keyof SpeakerItem, value: string | number) => {
     const updated = [...items];
     const item = { ...updated[index], [field]: value };
 

@@ -1,13 +1,12 @@
 "use client";
 
 import React, { useState } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
 import Link from "next/link";
 import { usePema } from "@/lib/context/RequestContext";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { SectionCard } from "@/components/ui/SectionCard";
 import { StatusBadge } from "@/components/ui/StatusBadge";
-import { MoneyValue } from "@/components/ui/MoneyValue";
 import { TotalsSummary } from "@/components/domain/TotalsSummary";
 import { ExpenseItemArray } from "@/components/domain/ExpenseItemArray";
 import { SpeakerItemArray } from "@/components/domain/SpeakerItemArray";
@@ -26,7 +25,6 @@ import {
   FileEdit,
   CheckCircle2,
   AlertCircle,
-  XCircle,
   Banknote,
   Printer,
   ChevronLeft,
@@ -35,7 +33,6 @@ import {
 
 export default function RequestDetailPage() {
   const params = useParams();
-  const router = useRouter();
   const { getRequestById, updateRequestStatus } = usePema();
 
   const id = Array.isArray(params?.id) ? params.id[0] : (params?.id as string);
@@ -50,7 +47,7 @@ export default function RequestDetailPage() {
     return (
       <div className="p-8 text-center space-y-4">
         <h2 className="text-xl font-bold text-brand-text">ไม่พบข้อมูลคำขอ</h2>
-        <p className="text-sm text-brand-muted">คำขอรหัส "{id}" อาจถูกลบหรือไม่เคยมีอยู่ในระบบ</p>
+        <p className="text-sm text-brand-muted">คำขอรหัส &quot;{id}&quot; อาจถูกลบหรือไม่เคยมีอยู่ในระบบ</p>
         <Link
           href="/requests"
           className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-brand-primary text-white text-sm font-semibold"
@@ -61,22 +58,21 @@ export default function RequestDetailPage() {
     );
   }
 
-  const handleActionConfirm = () => {
+  const handleActionConfirm = async () => {
     if (!activeAction) return;
     setIsSubmittingAction(true);
 
-    setTimeout(() => {
+    try {
       if (activeAction === "approve") {
-        updateRequestStatus(request.id, "approved", "อนุมัติคำขอโครงการและงบประมาณเรียบร้อย");
+        await updateRequestStatus(request.id, "approved", "อนุมัติคำขอโครงการและงบประมาณเรียบร้อย");
       } else if (activeAction === "return") {
-        updateRequestStatus(request.id, "returned", returnComment || "กรุณาแก้ไขรายละเอียดคำขอตามข้อสังเกต");
-      } else if (activeAction === "reject") {
-        updateRequestStatus(request.id, "rejected", "ไม่อนุมัติโครงการ");
+        await updateRequestStatus(request.id, "returned", returnComment || "กรุณาแก้ไขรายละเอียดคำขอตามข้อสังเกต");
       }
 
-      setIsSubmittingAction(false);
       setActiveAction(null);
-    }, 400);
+    } finally {
+      setIsSubmittingAction(false);
+    }
   };
 
   return (
@@ -105,7 +101,7 @@ export default function RequestDetailPage() {
             )}
 
             {/* If pending -> Approve / Return actions */}
-            {request.status === "pending_approval" && (
+            {request.status === "pending_approval" && request.allowedActions.includes("approve") && (
               <>
                 <button
                   type="button"

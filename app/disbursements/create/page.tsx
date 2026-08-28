@@ -8,9 +8,10 @@ import { PageHeader } from "@/components/ui/PageHeader";
 import { SectionCard } from "@/components/ui/SectionCard";
 import { TextField } from "@/components/fields/TextField";
 import { SelectField } from "@/components/fields/SelectField";
+import { TextareaField } from "@/components/fields/TextareaField";
 import { MoneyValue } from "@/components/ui/MoneyValue";
 import { DisbursementItem } from "@/lib/types/pema";
-import { Banknote, Plus, Trash2, Save, Send, ArrowLeft, CheckCircle2 } from "lucide-react";
+import { Banknote, Send } from "lucide-react";
 
 function CreateDisbursementContent() {
   const router = useRouter();
@@ -34,7 +35,8 @@ function CreateDisbursementContent() {
 
   // Initialize items when selected request changes
   useEffect(() => {
-    if (selectedRequest) {
+    if (!selectedRequest) return;
+    const timer = window.setTimeout(() => {
       setPayeeName(selectedRequest.requesterName || "");
       const disbItems: DisbursementItem[] = selectedRequest.expenses.map((exp, idx) => ({
         id: `d-item-${Date.now()}-${idx}`,
@@ -42,16 +44,17 @@ function CreateDisbursementContent() {
         category: exp.category,
         description: exp.description,
         budgetAllocated: exp.total,
-        actualAmount: exp.total, // default to approved total
-        invoiceNo: `INV-${Math.floor(1000 + Math.random() * 9000)}`,
+        actualAmount: exp.total,
+        invoiceNo: "",
         receiptDate: new Date().toISOString().split("T")[0],
         vendorName: "ร้านค้า / ผู้รับเงิน",
       }));
       setItems(disbItems);
-    }
+    }, 0);
+    return () => window.clearTimeout(timer);
   }, [selectedRequest]);
 
-  const updateItem = (index: number, field: keyof DisbursementItem, val: any) => {
+  const updateItem = (index: number, field: keyof DisbursementItem, val: string | number) => {
     const updated = [...items];
     updated[index] = { ...updated[index], [field]: val };
     setItems(updated);
@@ -61,12 +64,12 @@ function CreateDisbursementContent() {
   const totalActual = items.reduce((sum, item) => sum + (Number(item.actualAmount) || 0), 0);
   const remaining = totalApproved - totalActual;
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!selectedRequest) return;
     setIsSubmitting(true);
 
-    setTimeout(() => {
-      const created = createDisbursement({
+    try {
+      const result = await createDisbursement({
         requestId: selectedRequest.id,
         requestCode: selectedRequest.code,
         projectTitle: selectedRequest.title,
@@ -82,9 +85,10 @@ function CreateDisbursementContent() {
         items,
       });
 
+      router.push(`/disbursements/${result.id}`);
+    } finally {
       setIsSubmitting(false);
-      router.push(`/disbursements/${created.id}`);
-    }, 500);
+    }
   };
 
   return (
@@ -235,6 +239,14 @@ function CreateDisbursementContent() {
                 value={bankAccount}
                 onChange={(e) => setBankAccount(e.target.value)}
               />
+
+              <TextareaField
+                id="note"
+                label="หมายเหตุประกอบการเบิกจ่าย"
+                value={note}
+                onChange={(e) => setNote(e.target.value)}
+                className="sm:col-span-2"
+              />
             </div>
           </SectionCard>
 
@@ -276,4 +288,3 @@ export default function CreateDisbursementPage() {
     </Suspense>
   );
 }
-

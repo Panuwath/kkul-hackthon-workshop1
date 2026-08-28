@@ -62,7 +62,7 @@ export const TotalsSummary: React.FC<TotalsSummaryProps> = ({
       {isDetailed && (
         <div className="space-y-2 mb-4">
           {Object.entries(categories)
-            .filter(([_, cat]) => cat.amount > 0)
+            .filter(([, cat]) => cat.amount > 0)
             .map(([key, cat]) => {
               const percent = totalAmount > 0 ? (cat.amount / totalAmount) * 100 : 0;
               return (

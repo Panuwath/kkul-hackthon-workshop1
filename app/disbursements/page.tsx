@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
 import Link from "next/link";
 import { usePema } from "@/lib/context/RequestContext";
 import { PageHeader } from "@/components/ui/PageHeader";
@@ -8,11 +8,11 @@ import { SectionCard } from "@/components/ui/SectionCard";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { MoneyValue } from "@/components/ui/MoneyValue";
 import { formatDateThai } from "@/lib/utils";
-import { Banknote, Plus, ChevronRight, CheckCircle2, AlertCircle, ArrowUpRight } from "lucide-react";
+import { Banknote, Plus, ChevronRight, CheckCircle2, ArrowUpRight } from "lucide-react";
 
 export default function DisbursementListPage() {
   const { disbursements, requests } = usePema();
-  const [filter, setFilter] = useState("all");
+  const filter = "all";
 
   const approvedRequests = requests.filter((r) => r.status === "approved");
 
