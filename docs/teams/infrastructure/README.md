@@ -73,6 +73,9 @@ ERROR_TRACKING_DSN
 ## 5. Database และ storage operation
 
 - migration รันแบบ versioned และ review ก่อน production
+- mock fixture ต้องเข้า database ผ่าน Prisma seeder ไม่ใช่ hard-code ใน runtime UI
+- `npm run db:seed` ใช้ `.env` ชุดเดียวกับ migration, ทำงานแบบ idempotent และใช้คีย์ข้อมูล seed ที่ระบุชัดเจน (`SEED-*`, `seed-*` และ request number ของ fixture)
+- ห้ามรัน seeder กับ production database เว้นแต่มีแผนข้อมูลทดสอบและ approval ชัดเจน
 - backup PostgreSQL ตามรอบที่กำหนด พร้อมทดสอบ restore เป็นระยะ
 - schema change ที่ทำลายข้อมูลต้องมี expand → migrate → contract plan
 - private attachment storage บังคับ size/type policy และ signed URL

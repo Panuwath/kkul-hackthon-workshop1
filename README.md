@@ -8,6 +8,7 @@ Backend MVP สำหรับระบบหลักการขอใช้�
 npm install
 cp .env.example .env
 npm run db:validate
+npm run db:seed
 npm run typecheck
 npm run lint
 npm test
@@ -15,6 +16,8 @@ npm run build
 ```
 
 ไฟล์ `.env` รองรับทั้ง `DATABASE_URL` หรือชุด `DB_HOST`, `DB_PORT`, `DB_DATABASE`, `DB_USERNAME`, `DB_PASSWORD` โดยไม่ commit secret ลง repository
+
+`npm run db:seed` จะนำ mock fixture ของระบบเข้า PostgreSQL จริง ได้แก่ 5 คำขอ, รายการค่าใช้จ่าย, วิทยากร, เอกสารแนบ, approval timeline และรายการเบิกจ่าย โดยใช้คีย์ `SEED-*`/request number เดิมเพื่อให้รันซ้ำได้โดยไม่สร้างข้อมูลซ้ำ ควรใช้กับ local หรือ database ที่แยกจาก production เท่านั้น
 
 ## API
 

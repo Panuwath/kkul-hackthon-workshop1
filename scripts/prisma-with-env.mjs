@@ -37,8 +37,12 @@ if (!url) {
   process.exit(1);
 }
 
+const args = process.argv.slice(2);
+const command = args[0] === "seed"
+  ? ["--no-install", "tsx", "prisma/seed.ts"]
+  : ["--no-install", "prisma", ...args];
 const executable = process.platform === "win32" ? "npx.cmd" : "npx";
-execFileSync(executable, ["--no-install", "prisma", ...process.argv.slice(2)], {
+execFileSync(executable, command, {
   stdio: "inherit",
   env: { ...process.env, DATABASE_URL: url },
 });

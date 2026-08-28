@@ -14,7 +14,7 @@
     "db:validate": "node scripts/prisma-with-env.mjs validate",
     "db:migrate": "node scripts/prisma-with-env.mjs migrate deploy",
     "db:dev": "node scripts/prisma-with-env.mjs migrate dev",
-    "db:seed": "tsx prisma/seed.ts",
+    "db:seed": "node scripts/prisma-with-env.mjs seed",
     "healthcheck": "tsx scripts/healthcheck.ts",
     "deploy:server": "bash scripts/deploy-server.sh"
   },
