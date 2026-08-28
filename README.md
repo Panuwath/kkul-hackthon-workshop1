@@ -32,10 +32,12 @@ Production ต้องตั้ง `AUTH_MODE=jwt` และ `AUTH_JWT_SECRET` 
 
 ## Docker และ deploy
 
-container ฟังที่ `3000` และ server bind ที่ `APP_PORT` ซึ่ง default เป็น `3061` คำสั่ง deploy จะอ่าน `.vscode/sftp.json`, ตรวจ port, upload source archive และ `.env` แยกกัน, build/restart Docker Compose, migrate database แล้วรอ `/pema/api/health`
+container ฟังที่ `3000` และ server bind ที่ `APP_PORT` ซึ่ง default เป็น `3061` โดย GitHub Actions เป็นช่องทาง deploy หลัก: quality checks ต้องผ่านก่อน แล้วจึง upload source archive และ production environment ผ่าน SSH, ตรวจ port, build/restart Docker Compose, migrate database และรอ `/pema/api/health`
 
 ```bash
 npm run deploy:server
 ```
+
+คำสั่งด้านบนยังใช้ deploy จากเครื่องพัฒนาได้เมื่อจำเป็น ส่วนขั้นตอนหลักให้ merge เข้า `main` หรือกด `workflow_dispatch` พร้อมยืนยันใน GitHub Actions รายละเอียด Secrets อยู่ที่ [Infrastructure Guide](docs/teams/infrastructure/README.md)
 
 รายละเอียดการแบ่งงานอยู่ที่ [docs/teams/README.md](docs/teams/README.md) และ architectural decision อยู่ที่ [ADR-001](docs/decisions/ADR-001-fast-lane-backend-infrastructure.md)

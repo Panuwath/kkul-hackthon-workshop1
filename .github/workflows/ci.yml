@@ -4,6 +4,16 @@ on:
   pull_request:
   push:
     branches: [main]
+  workflow_dispatch:
+    inputs:
+      confirm:
+        description: Deploy the selected main branch revision to production
+        required: true
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
 
 jobs:
   quality:
@@ -19,3 +29,62 @@ jobs:
       - run: npm run typecheck
       - run: npm test
       - run: npm run build
+
+  deploy:
+    name: Deploy production
+    needs: quality
+    if: >-
+      github.ref == 'refs/heads/main' &&
+      (github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.confirm == true))
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment: production
+    concurrency:
+      group: pema-production
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install deployment SSH key
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.PEMA_SSH_PRIVATE_KEY }}
+
+      - name: Configure known hosts
+        env:
+          PEMA_KNOWN_HOSTS: ${{ secrets.PEMA_KNOWN_HOSTS }}
+        run: |
+          set -eu
+          test -n "$PEMA_KNOWN_HOSTS"
+          mkdir -p "$HOME/.ssh"
+          printf '%s\n' "$PEMA_KNOWN_HOSTS" > "$HOME/.ssh/known_hosts"
+          chmod 600 "$HOME/.ssh/known_hosts"
+
+      - name: Write production environment outside workspace
+        env:
+          PEMA_PRODUCTION_ENV: ${{ secrets.PEMA_PRODUCTION_ENV }}
+        run: |
+          set -eu
+          test -n "$PEMA_PRODUCTION_ENV"
+          printf '%s\n' "$PEMA_PRODUCTION_ENV" > "$RUNNER_TEMP/pema-production.env"
+          chmod 600 "$RUNNER_TEMP/pema-production.env"
+
+      - name: Deploy over SSH and verify health
+        env:
+          DEPLOY_HOST: ${{ secrets.PEMA_DEPLOY_HOST }}
+          DEPLOY_PORT: ${{ vars.PEMA_DEPLOY_PORT }}
+          DEPLOY_USER: ${{ secrets.PEMA_DEPLOY_USER }}
+          DEPLOY_PATH: ${{ secrets.PEMA_DEPLOY_PATH }}
+          DEPLOY_ENV_FILE: ${{ runner.temp }}/pema-production.env
+          APP_PORT: ${{ vars.PEMA_APP_PORT }}
+          DEPLOY_RUN_ID: ${{ github.run_id }}
+          DEPLOY_REVISION: ${{ github.sha }}
+          SSH_KNOWN_HOSTS_FILE: ${{ github.workspace }}/.github-known-hosts
+        run: |
+          set -eu
+          cp "$HOME/.ssh/known_hosts" "$SSH_KNOWN_HOSTS_FILE"
+          chmod 600 "$SSH_KNOWN_HOSTS_FILE"
+          bash scripts/deploy-server.sh
+
+      - name: Verify public production health endpoint
+        run: curl --fail --silent --show-error --max-time 15 https://lib.kku.ac.th/pema/api/health

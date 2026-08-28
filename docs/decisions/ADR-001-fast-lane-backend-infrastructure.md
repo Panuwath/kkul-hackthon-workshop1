@@ -22,7 +22,7 @@ Accepted
 - build เป็น standalone Docker image และให้ container ฟังที่ `3000`
 - bind server port ที่ `3061` เป็นค่าเริ่มต้น พร้อม preflight ตรวจซ้ำก่อน `docker compose up`
 - production ใช้ `AUTH_MODE=jwt`; dev header auth เปิดได้เฉพาะ environment ที่ไม่ใช่ production
-- deploy ผ่าน `scripts/deploy-server.sh` โดยอ่าน `.vscode/sftp.json` และไม่ส่ง `.env` เข้า archive
+- deploy หลักผ่าน GitHub Actions job ที่เรียก `scripts/deploy-server.sh` ด้วย GitHub Environment/Secrets และไม่ส่ง `.env` เข้า source archive; `scripts/deploy-server.sh` ยังรองรับ `.vscode/sftp.json` สำหรับ local compatibility
 
 ## Alternatives considered
 
