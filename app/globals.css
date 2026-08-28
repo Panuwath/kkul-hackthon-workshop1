@@ -3,6 +3,7 @@
 @tailwind utilities;
 
 :root {
+  --font-sarabun: "Sarabun";
   --color-primary: #A73B24;
   --color-secondary: #C85A3D;
   --color-accent: #F59E0B;
@@ -19,9 +20,28 @@
   body {
     background-color: var(--color-bg);
     color: var(--color-text);
+    font-family: var(--font-sarabun), "Noto Sans Thai", "Leelawadee UI", Tahoma, system-ui, sans-serif;
+    line-height: 1.6;
     font-feature-settings: "cv02", "cv03", "cv04", "cv11";
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: var(--font-sarabun), "Noto Sans Thai", "Leelawadee UI", Tahoma, system-ui, sans-serif;
+    letter-spacing: -0.012em;
+  }
+
+  button,
+  input,
+  textarea,
+  select {
+    font: inherit;
   }
 
   /* Custom subtle scrollbar */

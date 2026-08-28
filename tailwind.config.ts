@@ -35,6 +35,9 @@ const config: Config = {
       fontFamily: {
         sans: [
           "var(--font-sarabun)",
+          "Noto Sans Thai",
+          "Leelawadee UI",
+          "Tahoma",
           "system-ui",
           "-apple-system",
           "BlinkMacSystemFont",
