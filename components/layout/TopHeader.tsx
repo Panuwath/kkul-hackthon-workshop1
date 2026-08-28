@@ -2,7 +2,8 @@
 
 import React from "react";
 import Link from "next/link";
-import { Menu, Bell, Plus, Search } from "lucide-react";
+import { Menu, Plus, Search } from "lucide-react";
+import { NotificationPopover } from "./NotificationPopover";
 
 interface TopHeaderProps {
   onToggleSidebar: () => void;
@@ -22,7 +23,7 @@ export const TopHeader: React.FC<TopHeaderProps> = ({ onToggleSidebar }) => {
           <Menu className="w-5 h-5" />
         </button>
 
-        <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-100 text-slate-400 text-xs w-64 border border-transparent focus-within:border-brand-secondary focus-within:bg-white transition-all">
+        <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-100 text-slate-400 text-xs w-64 border border-transparent focus-within:border-brand-primary focus-within:bg-white transition-all">
           <Search className="w-3.5 h-3.5" />
           <input
             type="text"
@@ -43,15 +44,8 @@ export const TopHeader: React.FC<TopHeaderProps> = ({ onToggleSidebar }) => {
           <span>สร้างคำขอใหม่</span>
         </Link>
 
-        {/* Notifications */}
-        <button
-          type="button"
-          className="p-2 rounded-xl text-slate-600 hover:bg-slate-100 transition-colors relative focus-ring touch-target flex items-center justify-center"
-          aria-label="การแจ้งเตือน"
-        >
-          <Bell className="w-5 h-5" />
-          <span className="absolute top-2 right-2 w-2 h-2 rounded-full bg-amber-500 ring-2 ring-white" />
-        </button>
+        {/* Interactive Notifications Popover */}
+        <NotificationPopover />
       </div>
     </header>
   );
