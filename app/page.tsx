@@ -37,9 +37,9 @@ export default function DashboardPage() {
               <Image
                 src="/logo.png"
                 alt="Khon Kaen University"
-                width={100}
-                height={28}
-                className="h-7 w-auto object-contain"
+                width={40}
+                height={40}
+                className="h-8 w-auto object-contain"
               />
             </div>
             <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/15 backdrop-blur-md text-xs font-semibold text-amber-100 border border-white/20">
