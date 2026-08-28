@@ -54,7 +54,7 @@ shell_quote() {
   printf "'%s'" "$(printf '%s' "$1" | sed "s/'/'\\\\''/g")"
 }
 
-ARCHIVE_FILE="$(mktemp "${TMPDIR:-/tmp}/pema-kku-deploy.XXXXXX.tar.gz")"
+ARCHIVE_FILE="$(mktemp "${TMPDIR:-/tmp}/pema-kku-deploy.XXXXXX")"
 trap 'rm -f "$ARCHIVE_FILE"' EXIT
 
 tar -czf "$ARCHIVE_FILE" \
