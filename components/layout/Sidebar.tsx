@@ -86,6 +86,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                 alt="Khon Kaen University Logo"
                 width={40}
                 height={40}
+                priority
+                unoptimized
                 className="h-10 w-auto object-contain flex-shrink-0"
               />
               <div className="border-l border-slate-200 pl-2.5 min-w-0">
